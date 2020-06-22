@@ -83,3 +83,17 @@ lint/generated/
 lint/outputs/
 lint/tmp/
 # lint/reports/
+/gradlew
+/gradle/wrapper/gradle-wrapper.jar
+/app/libs/armeabi-v7a/libVidyoClient.so
+/gradlew.bat
+/app/libs/vidyoclient.jar
+/app/libs/x86_64/libVidyoClient.so
+/app/libs/x86/libVidyoClient.so
+/gradle/wrapper/gradle-wrapper.properties
+/app/libs/arm64-v8a/libVidyoClient.so
+/.idea/.name
+/.idea/jarRepositories.xml
+/.idea/misc.xml
+/.idea/codeStyles/Project.xml
+/.idea/runConfigurations.xml
