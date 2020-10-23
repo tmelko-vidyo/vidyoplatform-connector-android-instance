@@ -16,6 +16,7 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import com.vidyo.connector.instance.R;
+import com.vidyo.connector.instance.instance.ConnectorSingleInstance;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,6 +36,9 @@ public class HomeActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         AppCompatDelegate.setCompatVectorFromResourcesEnabled(true);
 
+        /* That's enough. Use Root Activity. */
+        ConnectorSingleInstance.setActivityContext(this);
+
         setContentView(R.layout.activity_home);
 
         setSupportActionBar(findViewById(R.id.home_toolbar));
@@ -51,20 +55,15 @@ public class HomeActivity extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.action_settings:
-                onSettings();
-                break;
+        if (item.getItemId() == R.id.action_settings) {
+            onSettings();
         }
+
         return super.onOptionsItemSelected(item);
     }
 
     public void onConnectRequested(View view) {
         startActivity(new Intent(this, VideoConferenceActivity.class));
-    }
-
-    public void onConnectFragmentRequested(View view) {
-        startActivity(new Intent(this, HostFragmentActivity.class));
     }
 
     public void onSettings() {

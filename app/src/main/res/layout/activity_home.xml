@@ -24,8 +24,8 @@
     <ImageView
         android:layout_width="@dimen/brand_icon_size"
         android:layout_height="@dimen/brand_icon_size"
-        android:src="@drawable/brand_logo"
-        android:visibility="gone"
+        android:src="@drawable/ic_launcher_foreground"
+        android:visibility="visible"
         tools:ignore="ContentDescription" />
 
     <Button
@@ -35,17 +35,7 @@
         android:layout_gravity="center"
         android:layout_margin="@dimen/material_margin"
         android:onClick="onConnectRequested"
-        android:text="@string/connect_with_activity"
-        android:visibility="visible" />
-
-    <Button
-        android:id="@+id/home_connect_fragment"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:layout_margin="@dimen/material_margin"
-        android:onClick="onConnectFragmentRequested"
-        android:text="@string/connect_with_fragment"
+        android:text="@string/start_conference"
         android:visibility="visible" />
 
     <Space

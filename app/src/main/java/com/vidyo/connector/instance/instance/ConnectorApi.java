@@ -1,7 +1,5 @@
 package com.vidyo.connector.instance.instance;
 
-import android.view.View;
-
 import com.vidyo.VidyoClient.Connector.Connector;
 
 /**
@@ -9,9 +7,13 @@ import com.vidyo.VidyoClient.Connector.Connector;
  */
 public interface ConnectorApi {
 
-    void connect(String portal, String room, String displayName, String pin, Connector.IConnect callback);
+    void assignRenderer(android.view.View view);
 
-    void showViewAt(View handler, int width, int height);
+    void hideView(android.view.View view);
+
+    void connect(String portal, String room, String displayName, String pin);
+
+    void showViewAt(android.view.View handler, int width, int height);
 
     void setMode(Connector.ConnectorMode mode);
 
@@ -32,6 +34,4 @@ public interface ConnectorApi {
     void disableDebug();
 
     boolean isConnected();
-
-    void release();
 }

@@ -16,7 +16,7 @@ import com.vidyo.VidyoClient.Connector.Connector;
 import com.vidyo.connector.instance.R;
 import com.vidyo.connector.instance.event.ControlEvent;
 import com.vidyo.connector.instance.instance.ConnectorApi;
-import com.vidyo.connector.instance.instance.ConnectorInstance;
+import com.vidyo.connector.instance.instance.ConnectorSingleInstance;
 import com.vidyo.connector.instance.utils.AppUtils;
 import com.vidyo.connector.instance.utils.ConnectParams;
 import com.vidyo.connector.instance.utils.Logger;
@@ -26,7 +26,7 @@ import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
-public class VideoConferenceActivity extends FragmentActivity implements Connector.IConnect, View.OnLayoutChangeListener {
+public class VideoConferenceActivity extends FragmentActivity implements View.OnLayoutChangeListener {
 
     private ControlToolbarView controlView;
     private View progressBar;
@@ -76,8 +76,10 @@ public class VideoConferenceActivity extends FragmentActivity implements Connect
         controlView = findViewById(R.id.control_view);
 
         videoFrame = findViewById(R.id.video_frame);
-        connectorApi = new ConnectorInstance(this, videoFrame, this);
-        Logger.i("Connector instance has been created.");
+
+        /* Here comes the only one initialization */
+        connectorApi = ConnectorSingleInstance.getInstance();
+        connectorApi.assignRenderer(videoFrame);
 
         controlView.showVersion(connectorApi.getVersion(), false);
 
@@ -114,74 +116,65 @@ public class VideoConferenceActivity extends FragmentActivity implements Connect
         videoFrame.requestLayout();
     }
 
-    @Override
-    public void onSuccess() {
-        runOnUiThread(() -> {
-            Toast.makeText(VideoConferenceActivity.this, R.string.connected, Toast.LENGTH_SHORT).show();
-            progressBar.setVisibility(View.GONE);
-
-            controlView.connectedCall(true);
-            controlView.disable(false);
-        });
-    }
-
-    @Override
-    public void onFailure(final Connector.ConnectorFailReason connectorFailReason) {
-        runOnUiThread(() -> {
-            Toast.makeText(VideoConferenceActivity.this, connectorFailReason.name(), Toast.LENGTH_SHORT).show();
-            progressBar.setVisibility(View.GONE);
-
-            controlView.connectedCall(false);
-            controlView.disable(false);
-
-            getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-        });
-    }
-
-    @Override
-    public void onDisconnected(Connector.ConnectorDisconnectReason connectorDisconnectReason) {
-        runOnUiThread(() -> {
-            Toast.makeText(VideoConferenceActivity.this, R.string.disconnected, Toast.LENGTH_SHORT).show();
-            progressBar.setVisibility(View.GONE);
-
-            controlView.connectedCall(false);
-            controlView.disable(false);
-
-            getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-
-            if (quitState) {
-                finish();
-            }
-        });
-    }
-
     @Subscribe(threadMode = ThreadMode.MAIN)
-    public void controlEvents(ControlEvent event) {
+    public void controlEvents(ControlEvent<?> event) {
         if (connectorApi == null) return;
 
         switch (event.getCall()) {
+            case SUCCESS:
+                Toast.makeText(this, R.string.connected, Toast.LENGTH_SHORT).show();
+                progressBar.setVisibility(View.GONE);
+
+                controlView.connectedCall(true);
+                controlView.disable(false);
+                break;
+            case DISCONNECTED:
+                Connector.ConnectorDisconnectReason disconnectReason = (Connector.ConnectorDisconnectReason) event.getValue();
+
+                Toast.makeText(this, R.string.disconnected, Toast.LENGTH_SHORT).show();
+                progressBar.setVisibility(View.GONE);
+
+                controlView.connectedCall(false);
+                controlView.disable(false);
+
+                getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+
+                if (quitState) finish();
+                break;
+            case FAILED:
+                Connector.ConnectorFailReason failReason = (Connector.ConnectorFailReason) event.getValue();
+
+                Toast.makeText(this, failReason.name(), Toast.LENGTH_SHORT).show();
+                progressBar.setVisibility(View.GONE);
+
+                controlView.connectedCall(false);
+                controlView.disable(false);
+
+                getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+                break;
+
             case CONNECT_DISCONNECT:
                 getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
                 progressBar.setVisibility(View.VISIBLE);
                 controlView.disable(true);
 
-                toggleConnectOrDisconnect((boolean) event.getValue());
+                toggleConnectOrDisconnect((Boolean) event.getValue());
                 break;
             case MUTE_CAMERA:
-                connectorApi.setCameraPrivacy((boolean) event.getValue());
+                connectorApi.setCameraPrivacy((Boolean) event.getValue());
                 break;
             case MUTE_MIC:
-                connectorApi.setMicrophonePrivacy((boolean) event.getValue());
+                connectorApi.setMicrophonePrivacy((Boolean) event.getValue());
                 break;
             case MUTE_SPEAKER:
-                connectorApi.setSpeakerPrivacy((boolean) event.getValue());
+                connectorApi.setSpeakerPrivacy((Boolean) event.getValue());
                 break;
             case CYCLE_CAMERA:
                 connectorApi.cycleCamera();
                 break;
             case DEBUG_OPTION:
-                boolean value = (boolean) event.getValue();
+                boolean value = (Boolean) event.getValue();
                 if (value) {
                     connectorApi.enableDebug(7776, "");
                 } else {
@@ -211,9 +204,7 @@ public class VideoConferenceActivity extends FragmentActivity implements Connect
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        connectorApi.release();
-
-        Logger.i("Connector instance has been released.");
+        connectorApi.hideView(videoFrame);
     }
 
     private void toggleConnectOrDisconnect(boolean connectOrDisconnect) {
@@ -221,7 +212,7 @@ public class VideoConferenceActivity extends FragmentActivity implements Connect
         controlView.disable(true);
 
         if (connectOrDisconnect) {
-            connectorApi.connect(ConnectParams.PORTAL_HOST, ConnectParams.PORTAL_ROOM, ConnectParams.DISPLAY_NAME, ConnectParams.PORTAL_PIN, this);
+            connectorApi.connect(ConnectParams.PORTAL_HOST, ConnectParams.PORTAL_ROOM, ConnectParams.DISPLAY_NAME, ConnectParams.PORTAL_PIN);
         } else {
             if (connectorApi != null) connectorApi.disconnect();
         }
