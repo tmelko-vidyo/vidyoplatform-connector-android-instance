@@ -1,5 +1,5 @@
 # VidyoPlatform Instance App for Android
-VidyoPlatform Android sample with separated VidyoClient SDK instance for Activity & Hosted Fragment. IConnect is wrapped into an separate class. UI reference could be replaced with EventBus within.
+VidyoPlatform Android sample with separated VidyoClient SDK instance from Activity. IConnect & event listeners are also kept as single object implementations. UI reference could be replaced with EventBus within.
 
 Developer documentation: https://vidyo.github.io/vidyoplatform.github.io
 
