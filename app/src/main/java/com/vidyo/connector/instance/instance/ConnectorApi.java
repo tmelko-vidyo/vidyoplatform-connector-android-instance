@@ -16,7 +16,11 @@ public interface ConnectorApi {
 
     void assignRenderer(View view);
 
-    void listenToFrames(FrameType frameType, View view);
+    void registerFrameContainer(FrameType frameType, View view);
+
+    void restartFrameListener();
+
+    void stopFramesListener();
 
     void hideView(View view);
 

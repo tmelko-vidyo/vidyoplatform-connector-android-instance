@@ -28,8 +28,8 @@ public class VideoRawFramesActivity extends FragmentActivity {
 
     private ConnectorApi connectorApi;
 
-    private FrameLayout selfFrame;
-    private FrameLayout remoteFrame;
+    private FrameLayout selfViewFrame;
+    private FrameLayout remoteViewFrame;
 
     private boolean quitState = false;
 
@@ -72,15 +72,17 @@ public class VideoRawFramesActivity extends FragmentActivity {
 
         controlView = findViewById(R.id.control_view);
 
-        selfFrame = findViewById(R.id.self_video_frame);
-        remoteFrame = findViewById(R.id.remote_video_frame);
+        selfViewFrame = findViewById(R.id.self_video_frame);
+        remoteViewFrame = findViewById(R.id.remote_video_frame);
 
         /* Here comes the only one initialization */
         connectorApi = ConnectorSingleInstance.getInstance();
         controlView.showVersion(connectorApi.getVersion(), false);
 
-        connectorApi.listenToFrames(ConnectorApi.FrameType.SELF, selfFrame);
-        connectorApi.listenToFrames(ConnectorApi.FrameType.REMOTE, remoteFrame);
+        connectorApi.registerFrameContainer(ConnectorApi.FrameType.SELF, selfViewFrame);
+        connectorApi.registerFrameContainer(ConnectorApi.FrameType.REMOTE, remoteViewFrame);
+
+        connectorApi.restartFrameListener();
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
@@ -171,8 +173,10 @@ public class VideoRawFramesActivity extends FragmentActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        connectorApi.hideView(selfFrame);
-        connectorApi.hideView(remoteFrame);
+        connectorApi.stopFramesListener();
+
+        connectorApi.hideView(selfViewFrame);
+        connectorApi.hideView(remoteViewFrame);
     }
 
     private void toggleConnectOrDisconnect(boolean connectOrDisconnect) {

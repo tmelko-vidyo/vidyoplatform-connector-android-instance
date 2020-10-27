@@ -25,7 +25,10 @@ public class ConnectorApiImpl extends ConnectorListenersAdapter implements Conne
     private final Connector connector;
 
     /* For the future rendering */
-    private Map<FrameType, View> frameTypeViewMap = new HashMap<>();
+    private final Map<FrameType, View> frameTypeViewMap = new HashMap<>();
+
+    private LocalCamera localCamera;
+    private RemoteCamera remoteCamera;
 
     public ConnectorApiImpl() {
         this.connector = new Connector(null, Connector.ConnectorViewStyle.VIDYO_CONNECTORVIEWSTYLE_Default,
@@ -61,8 +64,28 @@ public class ConnectorApiImpl extends ConnectorListenersAdapter implements Conne
     }
 
     @Override
-    public void listenToFrames(FrameType frameType, View view) {
+    public void registerFrameContainer(FrameType frameType, View view) {
         this.frameTypeViewMap.put(frameType, view);
+    }
+
+    @Override
+    public void restartFrameListener() {
+        /* Re-select camera in order to get onSelected and start listen to frames over */
+        this.connector.selectDefaultCamera();
+    }
+
+    @Override
+    public void stopFramesListener() {
+        if (localCamera != null)
+            connector.unregisterLocalCameraFrameListener(localCamera);
+
+        if (remoteCamera != null)
+            connector.unregisterRemoteCameraFrameListener(remoteCamera);
+
+        remoteCamera = null;
+        localCamera = null;
+
+        connector.selectLocalCamera(null);
     }
 
     @Override
@@ -137,51 +160,64 @@ public class ConnectorApiImpl extends ConnectorListenersAdapter implements Conne
 
     @Override
     public void onLocalCameraSelected(LocalCamera localCamera) {
-        if (!connector.registerLocalCameraFrameListener(this, localCamera, 1280, 720, 0)) {
+        if (localCamera == null) return;
+
+        /* Drop listener for the old local camera because we might re-select it with cycle. */
+        if (this.localCamera != null)
+            connector.unregisterLocalCameraFrameListener(this.localCamera);
+
+        this.localCamera = localCamera;
+
+        if (!connector.registerLocalCameraFrameListener(this, this.localCamera, 1280, 720, 0)) {
             Logger.e("registerLocalCameraFrameListener failed");
         } else {
-            Logger.e("registerLocalCameraFrameListener success");
+            Logger.i("registerLocalCameraFrameListener success");
         }
     }
 
     @Override
     public void onLocalCameraRemoved(LocalCamera localCamera) {
         if (localCamera != null) this.connector.unregisterLocalCameraFrameListener(localCamera);
+        this.localCamera = null;
     }
 
     @Override
     public void onLocalCameraFrame(LocalCamera localCamera, VideoFrame videoFrame) {
-        View frame = frameTypeViewMap.get(FrameType.SELF);
-        if (frame != null) {
-            // Render
-        }
+        View view = frameTypeViewMap.get(FrameType.SELF);
+        if (view != null) render(videoFrame, view);
 
-        Logger.i(" local camera frame called videoFrameSize ------->  " + videoFrame.data.length  + " VideoFrameFormat :: " + videoFrame.format
-                 + " width = " + videoFrame.width + " height = " + videoFrame.height);
+        Logger.i(" local camera frame called videoFrameSize ------->  " + videoFrame.data.length + " VideoFrameFormat :: " + videoFrame.format
+                + " width = " + videoFrame.width + " height = " + videoFrame.height);
     }
 
     @Override
     public void onRemoteCameraAdded(RemoteCamera remoteCamera, Participant participant) {
+        if (localCamera == null) return;
+        this.remoteCamera = remoteCamera;
+
         if (!connector.registerRemoteCameraFrameListener(this, remoteCamera, 360, 640, 0)) {
-            Logger.e("registerLocalCameraFrameListener failed");
+            Logger.e("registerRemoteCameraFrameListener failed");
         } else {
-            Logger.e("registerLocalCameraFrameListener success");
+            Logger.i("registerRemoteCameraFrameListener success");
         }
     }
 
     @Override
     public void onRemoteCameraRemoved(RemoteCamera remoteCamera, Participant participant) {
         if (remoteCamera != null) connector.unregisterRemoteCameraFrameListener(remoteCamera);
+        this.remoteCamera = null;
     }
 
     @Override
     public void onRemoteCameraFrame(RemoteCamera remoteCamera, Participant participant, VideoFrame videoFrame) {
-        View frame = frameTypeViewMap.get(FrameType.REMOTE);
-        if (frame != null) {
-            // Render
-        }
+        View view = frameTypeViewMap.get(FrameType.REMOTE);
+        if (view != null) render(videoFrame, view);
 
-        Logger.i(" remote camera frame called videoFrameSize ------->  " + videoFrame.data.length  + " VideoFrameFormat :: " + videoFrame.format
+        Logger.i(" remote camera frame called videoFrameSize ------->  " + videoFrame.data.length + " VideoFrameFormat :: " + videoFrame.format
                 + " participant name :: " + participant.name + " width = " + videoFrame.width + " height = " + videoFrame.height);
+    }
+
+    private void render(VideoFrame videoFrame, View view) {
+        // Render frame here. do Magic.
     }
 }
