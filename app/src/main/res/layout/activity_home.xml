@@ -38,6 +38,16 @@
         android:text="@string/start_conference"
         android:visibility="visible" />
 
+    <Button
+        android:id="@+id/home_frames_connect"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_margin="@dimen/material_margin"
+        android:onClick="onRawFramesConferenceClicked"
+        android:text="Raw Frames Conference"
+        android:visibility="visible" />
+
     <Space
         android:layout_width="wrap_content"
         android:layout_height="0dp"

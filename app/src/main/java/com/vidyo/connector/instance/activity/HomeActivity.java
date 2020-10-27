@@ -66,6 +66,10 @@ public class HomeActivity extends AppCompatActivity {
         startActivity(new Intent(this, VideoConferenceActivity.class));
     }
 
+    public void onRawFramesConferenceClicked(View view) {
+        startActivity(new Intent(this, VideoRawFramesActivity.class));
+    }
+
     public void onSettings() {
         startActivity(new Intent(this, SettingsActivity.class));
     }

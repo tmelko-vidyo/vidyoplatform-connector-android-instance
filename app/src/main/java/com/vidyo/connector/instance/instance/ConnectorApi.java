@@ -1,5 +1,7 @@
 package com.vidyo.connector.instance.instance;
 
+import android.view.View;
+
 import com.vidyo.VidyoClient.Connector.Connector;
 
 /**
@@ -7,13 +9,20 @@ import com.vidyo.VidyoClient.Connector.Connector;
  */
 public interface ConnectorApi {
 
-    void assignRenderer(android.view.View view);
+    enum FrameType {
+        SELF,
+        REMOTE
+    }
 
-    void hideView(android.view.View view);
+    void assignRenderer(View view);
+
+    void listenToFrames(FrameType frameType, View view);
+
+    void hideView(View view);
 
     void connect(String portal, String room, String displayName, String pin);
 
-    void showViewAt(android.view.View handler, int width, int height);
+    void showViewAt(View handler, int width, int height);
 
     void setMode(Connector.ConnectorMode mode);
 

@@ -42,6 +42,10 @@
             android:configChanges="orientation|screenSize" />
 
         <activity
+            android:name=".activity.VideoRawFramesActivity"
+            android:configChanges="orientation|screenSize" />
+
+        <activity
             android:name=".activity.SettingsActivity"
             android:configChanges="orientation|screenSize" />
 

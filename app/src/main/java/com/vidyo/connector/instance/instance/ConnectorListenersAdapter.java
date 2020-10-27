@@ -5,7 +5,10 @@ import com.vidyo.VidyoClient.Device.Device;
 import com.vidyo.VidyoClient.Device.LocalCamera;
 import com.vidyo.VidyoClient.Device.LocalMicrophone;
 import com.vidyo.VidyoClient.Device.LocalSpeaker;
+import com.vidyo.VidyoClient.Device.RemoteCamera;
+import com.vidyo.VidyoClient.Device.VideoFrame;
 import com.vidyo.VidyoClient.Endpoint.LogRecord;
+import com.vidyo.VidyoClient.Endpoint.Participant;
 
 /**
  * Abstract implementation of Connector device/event listeners.
@@ -14,9 +17,15 @@ import com.vidyo.VidyoClient.Endpoint.LogRecord;
  */
 public abstract class ConnectorListenersAdapter implements
         Connector.IRegisterLocalCameraEventListener,
-        Connector.IRegisterLogEventListener,
+        Connector.IRegisterLocalCameraFrameListener,
+
         Connector.IRegisterLocalMicrophoneEventListener,
-        Connector.IConnect, Connector.IRegisterLocalSpeakerEventListener {
+        Connector.IConnect, Connector.IRegisterLocalSpeakerEventListener,
+
+        Connector.IRegisterRemoteCameraEventListener,
+        Connector.IRegisterRemoteCameraFrameListener,
+
+        Connector.IRegisterLogEventListener {
 
     @Override
     public void onLocalCameraAdded(LocalCamera localCamera) {
@@ -80,6 +89,31 @@ public abstract class ConnectorListenersAdapter implements
 
     @Override
     public void onLocalSpeakerStateUpdated(LocalSpeaker localSpeaker, Device.DeviceState deviceState) {
+
+    }
+
+    @Override
+    public void onRemoteCameraAdded(RemoteCamera remoteCamera, Participant participant) {
+
+    }
+
+    @Override
+    public void onRemoteCameraRemoved(RemoteCamera remoteCamera, Participant participant) {
+
+    }
+
+    @Override
+    public void onRemoteCameraStateUpdated(RemoteCamera remoteCamera, Participant participant, Device.DeviceState deviceState) {
+
+    }
+
+    @Override
+    public void onRemoteCameraFrame(RemoteCamera remoteCamera, Participant participant, VideoFrame videoFrame) {
+
+    }
+
+    @Override
+    public void onLocalCameraFrame(LocalCamera localCamera, VideoFrame videoFrame) {
 
     }
 }

@@ -1,10 +1,19 @@
 package com.vidyo.connector.instance.instance;
 
+import android.view.View;
+
 import com.vidyo.VidyoClient.Connector.Connector;
 import com.vidyo.VidyoClient.Device.LocalCamera;
+import com.vidyo.VidyoClient.Device.RemoteCamera;
+import com.vidyo.VidyoClient.Device.VideoFrame;
+import com.vidyo.VidyoClient.Endpoint.Participant;
 import com.vidyo.connector.instance.event.ControlEvent;
+import com.vidyo.connector.instance.utils.Logger;
 
 import org.greenrobot.eventbus.EventBus;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Connector instance implementation.
@@ -13,7 +22,10 @@ public class ConnectorApiImpl extends ConnectorListenersAdapter implements Conne
 
     private static final int REMOTE_COUNT = 8;
 
-    private Connector connector;
+    private final Connector connector;
+
+    /* For the future rendering */
+    private Map<FrameType, View> frameTypeViewMap = new HashMap<>();
 
     public ConnectorApiImpl() {
         this.connector = new Connector(null, Connector.ConnectorViewStyle.VIDYO_CONNECTORVIEWSTYLE_Default,
@@ -22,6 +34,8 @@ public class ConnectorApiImpl extends ConnectorListenersAdapter implements Conne
         this.connector.registerLocalCameraEventListener(this);
         this.connector.registerLocalMicrophoneEventListener(this);
         this.connector.registerLocalSpeakerEventListener(this);
+
+        this.connector.registerRemoteCameraEventListener(this);
 
         this.connector.registerLogEventListener(this, "debug@VidyoClient");
     }
@@ -44,6 +58,11 @@ public class ConnectorApiImpl extends ConnectorListenersAdapter implements Conne
     @Override
     public void assignRenderer(android.view.View view) {
         connector.assignViewToCompositeRenderer(view, Connector.ConnectorViewStyle.VIDYO_CONNECTORVIEWSTYLE_Default, REMOTE_COUNT);
+    }
+
+    @Override
+    public void listenToFrames(FrameType frameType, View view) {
+        this.frameTypeViewMap.put(frameType, view);
     }
 
     @Override
@@ -117,7 +136,52 @@ public class ConnectorApiImpl extends ConnectorListenersAdapter implements Conne
      */
 
     @Override
-    public void onLocalCameraAdded(LocalCamera localCamera) {
-        /* Whenever we need this callback. Just implement here */
+    public void onLocalCameraSelected(LocalCamera localCamera) {
+        if (!connector.registerLocalCameraFrameListener(this, localCamera, 1280, 720, 0)) {
+            Logger.e("registerLocalCameraFrameListener failed");
+        } else {
+            Logger.e("registerLocalCameraFrameListener success");
+        }
+    }
+
+    @Override
+    public void onLocalCameraRemoved(LocalCamera localCamera) {
+        if (localCamera != null) this.connector.unregisterLocalCameraFrameListener(localCamera);
+    }
+
+    @Override
+    public void onLocalCameraFrame(LocalCamera localCamera, VideoFrame videoFrame) {
+        View frame = frameTypeViewMap.get(FrameType.SELF);
+        if (frame != null) {
+            // Render
+        }
+
+        Logger.i(" local camera frame called videoFrameSize ------->  " + videoFrame.data.length  + " VideoFrameFormat :: " + videoFrame.format
+                 + " width = " + videoFrame.width + " height = " + videoFrame.height);
+    }
+
+    @Override
+    public void onRemoteCameraAdded(RemoteCamera remoteCamera, Participant participant) {
+        if (!connector.registerRemoteCameraFrameListener(this, remoteCamera, 360, 640, 0)) {
+            Logger.e("registerLocalCameraFrameListener failed");
+        } else {
+            Logger.e("registerLocalCameraFrameListener success");
+        }
+    }
+
+    @Override
+    public void onRemoteCameraRemoved(RemoteCamera remoteCamera, Participant participant) {
+        if (remoteCamera != null) connector.unregisterRemoteCameraFrameListener(remoteCamera);
+    }
+
+    @Override
+    public void onRemoteCameraFrame(RemoteCamera remoteCamera, Participant participant, VideoFrame videoFrame) {
+        View frame = frameTypeViewMap.get(FrameType.REMOTE);
+        if (frame != null) {
+            // Render
+        }
+
+        Logger.i(" remote camera frame called videoFrameSize ------->  " + videoFrame.data.length  + " VideoFrameFormat :: " + videoFrame.format
+                + " participant name :: " + participant.name + " width = " + videoFrame.width + " height = " + videoFrame.height);
     }
 }
